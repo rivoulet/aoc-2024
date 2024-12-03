@@ -1,4 +1,3 @@
-#include "../common.hh"
 #include <algorithm>
 #include <cstddef>
 #include <cstdio>

@@ -1,5 +1,5 @@
 MAKEFLAGS += -rR
-CXXFLAGS += -Wall
+CXXFLAGS += -Wall -std=c++17
 
-%/sol: %/main.cc common.hh
-	$(CXX) $(CXXFLAGS) $< -o $@
+%/sol: %/main.cc main.cc common.hh
+	$(CXX) $(CXXFLAGS) $< main.cc -o $@
