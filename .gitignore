@@ -1,2 +1,4 @@
 */sol
-/input.txt
+*.dSYM
+.vscode
+/input
