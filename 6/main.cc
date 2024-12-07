@@ -115,9 +115,9 @@ std::pair<Grid<Cell>, Guard> parse_map(FILE* input_) {
 
 bool simulate(Grid<Cell>& grid, Guard guard) {
     for (;;) {
-        Vec2<size_t> new_pos = guard.pos + offset_for_dir(guard.dir);
+        auto new_pos = guard.pos + offset_for_dir(guard.dir);
         if (new_pos.x >= grid.size.x || new_pos.y >= grid.size.y)
-            break;
+            return true;
         if (grid.cells[new_pos.y * grid.size.x + new_pos.x].is_obstacle) {
             guard.dir = rotate_clockwise(guard.dir);
         } else {
@@ -131,7 +131,6 @@ bool simulate(Grid<Cell>& grid, Guard guard) {
             return false;
         }
     }
-    return true;
 }
 
 void part1(FILE* input) {
