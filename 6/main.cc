@@ -6,14 +6,6 @@
 #include <utility>
 #include <vector>
 
-template <typename T> struct Vec2 {
-    T x, y;
-
-    template <typename U> Vec2<T> operator+(Vec2<U> other) {
-        return {x + other.x, y + other.y};
-    }
-};
-
 template <typename T> struct Grid {
     std::vector<T> cells;
     Vec2<size_t> size;
@@ -134,9 +126,7 @@ bool simulate(Grid<Cell>& grid, Guard guard) {
 }
 
 void part1(FILE* input) {
-    auto grid_guard = parse_map(input);
-    auto grid = grid_guard.first;
-    auto guard = grid_guard.second;
+    auto [grid, guard] = parse_map(input);
     assert(simulate(grid, guard));
     size_t visited = 0;
     for (size_t i = 0; i < grid.cells.size(); i++) {
@@ -146,9 +136,7 @@ void part1(FILE* input) {
 }
 
 void part2(FILE* input) {
-    auto grid_guard = parse_map(input);
-    auto grid = grid_guard.first;
-    auto guard = grid_guard.second;
+    auto [grid, guard] = parse_map(input);
     size_t loops = 0;
     for (size_t y = 0; y < grid.size.y; y++) {
         for (size_t x = 0; x < grid.size.x; x++) {

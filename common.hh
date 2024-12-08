@@ -1,9 +1,93 @@
 #pragma once
 
 #include <cstdio>
+#include <limits>
 #include <string>
 #include <system_error>
 #include <vector>
+
+template <typename T> struct Vec2 {
+    T x, y;
+
+    bool operator==(const Vec2<T>& other) const noexcept {
+        return x == other.x && y == other.y;
+    }
+
+    template <typename U> Vec2<T> operator+(Vec2<U> other) const noexcept {
+        return {x + other.x, y + other.y};
+    }
+
+    template <typename U> Vec2<T>& operator+=(Vec2<U> other) noexcept {
+        x += other.x;
+        y += other.y;
+        return *this;
+    }
+
+    template <typename U> Vec2<T> operator-(Vec2<U> other) const noexcept {
+        return {x - other.x, y - other.y};
+    }
+
+    template <typename U> Vec2<T>& operator-=(Vec2<U> other) noexcept {
+        x -= other.x;
+        y -= other.y;
+        return *this;
+    }
+
+    template <typename U> Vec2<T> operator*(U other) const noexcept {
+        return {x * other, y * other};
+    }
+
+    template <typename U> Vec2<T>& operator*=(U other) noexcept {
+        x *= other;
+        y *= other;
+        return *this;
+    }
+
+    template <typename U> Vec2<T> operator/(U other) const noexcept {
+        return {x / other, y / other};
+    }
+
+    template <typename U> Vec2<T>& operator/=(U other) noexcept {
+        x /= other;
+        y /= other;
+        return *this;
+    }
+
+    template <typename U> operator Vec2<U>() const noexcept {
+        return {(U)x, (U)y};
+    }
+};
+
+constexpr auto SIZE_T_BITS = std::numeric_limits<size_t>::digits;
+
+template <typename T> T rotl(T x, unsigned s) noexcept {
+    return (x << s) | (x >> (SIZE_T_BITS - s));
+}
+
+template <typename T> struct std::hash<Vec2<T>> {
+    std::size_t operator()(const Vec2<T>& v) const noexcept {
+        return rotl(std::hash<T>{}(v.x), SIZE_T_BITS >> 1) |
+               std::hash<T>{}(v.y);
+    }
+};
+
+template <typename T, typename U> struct std::hash<std::pair<T, U>> {
+    std::size_t operator()(const std::pair<T, U>& p) const noexcept {
+        return rotl(std::hash<T>{}(p.first), SIZE_T_BITS >> 1) |
+               std::hash<U>{}(p.second);
+    }
+};
+
+inline int read_char(FILE* f) {
+    int c = fgetc(f);
+    if (c == EOF) {
+        int err = ferror(f);
+        if (err) {
+            throw std::system_error(err, std::system_category());
+        }
+    }
+    return c;
+}
 
 constexpr size_t BUF_START_SIZE = 512;
 

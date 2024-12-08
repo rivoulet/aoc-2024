@@ -6,4 +6,4 @@ CXXFLAGS += -Wall -std=c++17 -g
 
 .PHONY: clean
 clean:
-	-rm -r */sol */sol.dSYM
+	-find . -name 'sol' -or -name 'sol.dSYM' -maxdepth 2 | xargs rm -r

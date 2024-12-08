@@ -140,9 +140,9 @@ void part1(FILE* input_) {
                 ns.push_back(n);
             }
         }
-        for (const auto& rule : rules) {
-            if (ns_indices.count(rule.first) && ns_indices.count(rule.second)) {
-                if (ns_indices[rule.first] > ns_indices[rule.second])
+        for (const auto& [a, b] : rules) {
+            if (ns_indices.count(a) && ns_indices.count(b)) {
+                if (ns_indices[a] > ns_indices[b])
                     goto failed;
             }
         }
@@ -192,9 +192,9 @@ void part2(FILE* input_) {
                 ns.insert(n);
             }
         }
-        for (const auto& rule : rules) {
-            if (n_to_is.count(rule.first) && n_to_is.count(rule.second)) {
-                if (n_to_is[rule.first] > n_to_is[rule.second])
+        for (const auto& [a, b] : rules) {
+            if (n_to_is.count(a) && n_to_is.count(b)) {
+                if (n_to_is[a] > n_to_is[b])
                     goto failed;
             }
         }
