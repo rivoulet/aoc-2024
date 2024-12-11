@@ -5,30 +5,7 @@
 #include <utility>
 #include <vector>
 
-// struct File {
-//     size_t location;
-//     size_t id;
-//     size_t length;
-// };
-
-// struct DiskMap {
-//     std::vector<File> files;
-// };
-
 std::vector<std::optional<size_t>> parse_input(FILE* input) {
-    // std::pair<std::vector<std::pair<size_t, File>>, size_t> result;
-    // bool is_file = true;
-    // size_t i = 0;
-    // size_t file_id = 0;
-    // for (int c; (c = read_char(input)) != EOF;) {
-    //     unsigned char length = c - '0';
-    //     if (length > 9) break;
-    //     if (is_file) {
-    //         result.push_back({i, {file_id++, length}});
-    //     }
-    //     i += length;
-    // }
-    // return result;
     std::vector<std::optional<size_t>> result;
     bool is_file = true;
     size_t file_id = 0;
