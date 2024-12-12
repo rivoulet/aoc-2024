@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdio>
 #include <limits>
 #include <string>
@@ -141,3 +142,40 @@ inline std::vector<std::string> read_all_lines(FILE* f) {
     free(buf);
     return result;
 }
+
+template <typename T> struct Grid {
+    std::vector<T> contents;
+    Vec2<size_t> size;
+
+    Grid(std::vector<T> contents, Vec2<size_t> size) noexcept
+        : contents(contents), size(size) {}
+
+    template <typename F> Grid(FILE* input, F parse) : size({0, 0}) {
+        size_t cur_width = 0;
+        for (int c; (c = read_char(input)) != EOF;) {
+            if (c == '\n') {
+                if (size.x) {
+                    assert(cur_width == size.x);
+                } else {
+                    size.x = cur_width;
+                }
+                cur_width = 0;
+                size.y++;
+            } else {
+                contents.push_back(parse(c));
+                cur_width++;
+            }
+        }
+    }
+
+    size_t pos_to_i(Vec2<size_t> pos) {
+        return pos.y * size.x + pos.x;
+    }
+};
+
+constexpr std::array<Vec2<ptrdiff_t>, 4> grid_dirs{
+    Vec2<ptrdiff_t>{1, 0},
+    {-1, 0},
+    {0, 1},
+    {0, -1},
+};

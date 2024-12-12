@@ -6,11 +6,6 @@
 #include <utility>
 #include <vector>
 
-template <typename T> struct Grid {
-    std::vector<T> cells;
-    Vec2<size_t> size;
-};
-
 enum class Dir {
     Up,
     Right,
@@ -62,12 +57,12 @@ std::pair<Grid<Cell>, Guard> parse_map(FILE* input_) {
     for (char c : input) {
         switch (c) {
         case '.': {
-            grid.cells.push_back({false, 0});
+            grid.contents.push_back({false, 0});
             x++;
             continue;
         }
         case '#': {
-            grid.cells.push_back({true, 0});
+            grid.contents.push_back({true, 0});
             x++;
             continue;
         }
@@ -99,7 +94,7 @@ std::pair<Grid<Cell>, Guard> parse_map(FILE* input_) {
         }
         }
         guard.pos = {x, grid.size.y};
-        grid.cells.push_back({false, (uint8_t)(1 << (int)guard.dir)});
+        grid.contents.push_back({false, (uint8_t)(1 << (int)guard.dir)});
         x++;
     }
     return {grid, guard};
@@ -110,12 +105,12 @@ bool simulate(Grid<Cell>& grid, Guard guard) {
         auto new_pos = guard.pos + offset_for_dir(guard.dir);
         if (new_pos.x >= grid.size.x || new_pos.y >= grid.size.y)
             return true;
-        if (grid.cells[new_pos.y * grid.size.x + new_pos.x].is_obstacle) {
+        if (grid.contents[new_pos.y * grid.size.x + new_pos.x].is_obstacle) {
             guard.dir = rotate_clockwise(guard.dir);
         } else {
             guard.pos = new_pos;
         }
-        Cell& cell = grid.cells[guard.pos.y * grid.size.x + guard.pos.x];
+        Cell& cell = grid.contents[guard.pos.y * grid.size.x + guard.pos.x];
         uint8_t visit_dir_mask = 1 << (uint8_t)guard.dir;
         if ((cell.visit_dir_mask & visit_dir_mask) == 0) {
             cell.visit_dir_mask |= visit_dir_mask;
@@ -129,8 +124,8 @@ void part1(FILE* input) {
     auto [grid, guard] = parse_map(input);
     assert(simulate(grid, guard));
     size_t visited = 0;
-    for (size_t i = 0; i < grid.cells.size(); i++) {
-        visited += grid.cells[i].visit_dir_mask != 0;
+    for (size_t i = 0; i < grid.contents.size(); i++) {
+        visited += grid.contents[i].visit_dir_mask != 0;
     }
     printf("%zu\n", visited);
 }
@@ -141,10 +136,10 @@ void part2(FILE* input) {
     for (size_t y = 0; y < grid.size.y; y++) {
         for (size_t x = 0; x < grid.size.x; x++) {
             auto i = y * grid.size.x + x;
-            if (grid.cells[i].is_obstacle)
+            if (grid.contents[i].is_obstacle)
                 continue;
             auto grid_with_obstacle = grid;
-            grid_with_obstacle.cells[i].is_obstacle = true;
+            grid_with_obstacle.contents[i].is_obstacle = true;
             loops += !simulate(grid_with_obstacle, guard);
         }
     }

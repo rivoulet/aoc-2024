@@ -1,70 +1,37 @@
 #include "../common.hh"
 #include <algorithm>
-#include <cassert>
 #include <cstddef>
 #include <vector>
 
-struct Grid {
-    std::vector<uint8_t> heights;
-    Vec2<size_t> size;
+struct InputGrid : Grid<uint8_t> {
     std::vector<Vec2<size_t>> zeros;
     std::vector<Vec2<size_t>> nines;
 
-    static Grid parse(FILE* input) {
-        Grid grid{{}, {0, 0}};
-        size_t cur_width = 0;
-        for (int c; (c = read_char(input)) != EOF;) {
-            if (c == '\n') {
-                if (grid.size.x) {
-                    assert(cur_width == grid.size.x);
-                } else {
-                    grid.size.x = cur_width;
-                }
-                cur_width = 0;
-                grid.size.y++;
-            } else {
-                grid.heights.push_back(c - '0');
-                cur_width++;
-            }
-        }
-
-        for (size_t y = 0; y < grid.size.y; y++) {
-            for (size_t x = 0; x < grid.size.x; x++) {
-                switch (grid.heights[grid.pos_to_i({x, y})]) {
+    InputGrid(FILE* input) : Grid(input, [](char c) { return c - '0'; }) {
+        for (size_t y = 0; y < size.y; y++) {
+            for (size_t x = 0; x < size.x; x++) {
+                switch (contents[pos_to_i({x, y})]) {
                 case 0: {
-                    grid.zeros.push_back({x, y});
+                    zeros.push_back({x, y});
                     break;
                 }
                 case 9: {
-                    grid.nines.push_back({x, y});
+                    nines.push_back({x, y});
                     break;
                 }
                 }
             }
         }
-
-        return grid;
     }
-
-    size_t pos_to_i(Vec2<size_t> pos) {
-        return pos.y * size.x + pos.x;
-    }
-};
-
-constexpr std::array<Vec2<ptrdiff_t>, 4> dirs{
-    Vec2<ptrdiff_t>{1, 0},
-    {-1, 0},
-    {0, 1},
-    {0, -1},
 };
 
 void part1(FILE* input) {
-    auto grid = Grid::parse(input);
+    InputGrid grid(input);
 
     size_t sum = 0;
 
     std::vector<Vec2<size_t>> to_visit;
-    std::vector<bool> visited(grid.heights.size(), false);
+    std::vector<bool> visited(grid.contents.size(), false);
     for (const auto zero : grid.zeros) {
         std::fill(visited.begin(), visited.end(), false);
         to_visit.push_back(zero);
@@ -73,12 +40,12 @@ void part1(FILE* input) {
             auto pos = to_visit.back();
             to_visit.pop_back();
             auto i = grid.pos_to_i(pos);
-            for (const auto dir : dirs) {
+            for (const auto dir : grid_dirs) {
                 auto new_pos = pos + dir;
                 if (new_pos.x >= grid.size.x || new_pos.y >= grid.size.y)
                     continue;
                 auto j = grid.pos_to_i(new_pos);
-                if (visited[j] || grid.heights[j] != grid.heights[i] + 1)
+                if (visited[j] || grid.contents[j] != grid.contents[i] + 1)
                     continue;
                 visited[j] = true;
                 to_visit.push_back(new_pos);
@@ -94,7 +61,7 @@ void part1(FILE* input) {
 }
 
 void part2(FILE* input) {
-    auto grid = Grid::parse(input);
+    InputGrid grid(input);
 
     size_t sum = 0;
 
@@ -105,13 +72,13 @@ void part2(FILE* input) {
             auto pos = to_visit.back();
             to_visit.pop_back();
             auto i = grid.pos_to_i(pos);
-            sum += grid.heights[i] == 0;
-            for (const auto dir : dirs) {
+            sum += grid.contents[i] == 0;
+            for (const auto dir : grid_dirs) {
                 auto new_pos = pos + dir;
                 if (new_pos.x >= grid.size.x || new_pos.y >= grid.size.y)
                     continue;
                 auto j = grid.pos_to_i(new_pos);
-                if (grid.heights[j] + 1 != grid.heights[i])
+                if (grid.contents[j] + 1 != grid.contents[i])
                     continue;
                 to_visit.push_back(new_pos);
             }
