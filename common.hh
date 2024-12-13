@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <cstdio>
 #include <limits>
@@ -10,51 +11,141 @@
 template <typename T> struct Vec2 {
     T x, y;
 
-    bool operator==(const Vec2<T>& other) const noexcept {
+    constexpr const T& min_component() const noexcept {
+        return std::min(x, y);
+    }
+
+    constexpr const T& max_component() const noexcept {
+        return std::max(x, y);
+    }
+
+    constexpr bool is_zero() const noexcept {
+        return x == 0 && y == 0;
+    }
+
+    constexpr Vec2<T> swap_components() const noexcept {
+        return {y, x};
+    }
+
+    constexpr bool operator==(const Vec2<T>& other) const noexcept {
         return x == other.x && y == other.y;
     }
 
-    template <typename U> Vec2<T> operator+(Vec2<U> other) const noexcept {
+    constexpr bool operator!=(const Vec2<T>& other) const noexcept {
+        return x != other.x || y != other.y;
+    }
+
+    template <typename U> constexpr Vec2<T> operator+(U other) const noexcept {
+        return {x + other, y + other};
+    }
+
+    template <typename U> constexpr Vec2<T>& operator+=(U other) noexcept {
+        x += other;
+        y += other;
+        return *this;
+    }
+
+    template <typename U>
+    constexpr Vec2<T> operator+(Vec2<U> other) const noexcept {
         return {x + other.x, y + other.y};
     }
 
-    template <typename U> Vec2<T>& operator+=(Vec2<U> other) noexcept {
+    template <typename U>
+    constexpr Vec2<T>& operator+=(Vec2<U> other) noexcept {
         x += other.x;
         y += other.y;
         return *this;
     }
 
-    template <typename U> Vec2<T> operator-(Vec2<U> other) const noexcept {
+    template <typename U> constexpr Vec2<T> operator-(U other) const noexcept {
+        return {x - other, y - other};
+    }
+
+    template <typename U> constexpr Vec2<T>& operator-=(U other) noexcept {
+        x -= other;
+        y -= other;
+        return *this;
+    }
+
+    template <typename U>
+    constexpr Vec2<T> operator-(Vec2<U> other) const noexcept {
         return {x - other.x, y - other.y};
     }
 
-    template <typename U> Vec2<T>& operator-=(Vec2<U> other) noexcept {
+    template <typename U>
+    constexpr Vec2<T>& operator-=(Vec2<U> other) noexcept {
         x -= other.x;
         y -= other.y;
         return *this;
     }
 
-    template <typename U> Vec2<T> operator*(U other) const noexcept {
+    template <typename U>
+    constexpr Vec2<T> operator*(Vec2<U> other) const noexcept {
+        return {x * other.x, y * other.y};
+    }
+
+    template <typename U>
+    constexpr Vec2<T>& operator*=(Vec2<U> other) noexcept {
+        x *= other.x;
+        y *= other.y;
+        return *this;
+    }
+
+    template <typename U> constexpr Vec2<T> operator*(U other) const noexcept {
         return {x * other, y * other};
     }
 
-    template <typename U> Vec2<T>& operator*=(U other) noexcept {
+    template <typename U> constexpr Vec2<T>& operator*=(U other) noexcept {
         x *= other;
         y *= other;
         return *this;
     }
 
-    template <typename U> Vec2<T> operator/(U other) const noexcept {
+    template <typename U>
+    constexpr Vec2<T> operator/(Vec2<U> other) const noexcept {
+        return {x / other.x, y / other.y};
+    }
+
+    template <typename U>
+    constexpr Vec2<T>& operator/=(Vec2<U> other) noexcept {
+        x /= other.x;
+        y /= other.y;
+        return *this;
+    }
+
+    template <typename U> constexpr Vec2<T> operator/(U other) const noexcept {
         return {x / other, y / other};
     }
 
-    template <typename U> Vec2<T>& operator/=(U other) noexcept {
+    template <typename U> constexpr Vec2<T>& operator/=(U other) noexcept {
         x /= other;
         y /= other;
         return *this;
     }
 
-    template <typename U> operator Vec2<U>() const noexcept {
+    template <typename U>
+    constexpr Vec2<T> operator%(Vec2<U> other) const noexcept {
+        return {x % other.x, y % other.y};
+    }
+
+    template <typename U>
+    constexpr Vec2<T>& operator%=(Vec2<U> other) noexcept {
+        x %= other.x;
+        y %= other.y;
+        return *this;
+    }
+
+    template <typename U> constexpr Vec2<T> operator%(U other) const noexcept {
+        return {x % other, y % other};
+    }
+
+    template <typename U> constexpr Vec2<T>& operator%=(U other) noexcept {
+        x %= other;
+        y %= other;
+        return *this;
+    }
+
+    template <typename U> constexpr operator Vec2<U>() const noexcept {
         return {(U)x, (U)y};
     }
 };
