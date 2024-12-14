@@ -25,7 +25,7 @@ constexpr std::array<std::array<Vec2<ptrdiff_t>, 2>, 4> perp_grid_dirs{
 
 void part1(FILE* input) {
     Grid<char> grid(input, [](char c) { return c; });
-    std::vector<bool> visited(grid.contents.size(), false);
+    Grid<bool> visited(grid.size);
     std::vector<Vec2<size_t>> to_visit;
 
     size_t sum = 0;
@@ -34,12 +34,11 @@ void part1(FILE* input) {
             char region_value;
             {
                 Vec2<size_t> pos = {x, y};
-                auto i = grid.pos_to_i(pos);
-                if (visited[i])
+                if (visited[pos])
                     continue;
-                visited[i] = true;
+                visited[pos] = true;
                 to_visit.push_back(pos);
-                region_value = grid.contents[i];
+                region_value = grid[pos];
             }
             size_t area = 0, perimeter = 0;
             while (!to_visit.empty()) {
@@ -48,16 +47,15 @@ void part1(FILE* input) {
                 area++;
                 for (const auto dir : grid_dirs) {
                     auto other_pos = pos + dir;
-                    auto other_i = grid.pos_to_i(other_pos);
                     if (other_pos.x >= grid.size.x ||
                         other_pos.y >= grid.size.y ||
-                        grid.contents[other_i] != region_value) {
+                        grid[other_pos] != region_value) {
                         perimeter++;
                         continue;
                     }
-                    if (visited[other_i])
+                    if (visited[other_pos])
                         continue;
-                    visited[other_i] = true;
+                    visited[other_pos] = true;
                     to_visit.push_back(other_pos);
                 }
             }
@@ -70,8 +68,8 @@ void part1(FILE* input) {
 
 void part2(FILE* input) {
     Grid<char> grid(input, [](char c) { return c; });
-    std::vector<bool> visited(grid.contents.size(), false);
-    std::vector<uint8_t> side_masks(grid.contents.size(), 0);
+    Grid<bool> visited(grid.size, false);
+    Grid<uint8_t> side_masks(grid.size, 0);
     std::queue<Vec2<size_t>> to_visit;
 
     size_t sum = 0;
@@ -80,44 +78,40 @@ void part2(FILE* input) {
             char region_value;
             {
                 Vec2<size_t> pos = {x, y};
-                auto i = grid.pos_to_i(pos);
-                if (visited[i])
+                if (visited[pos])
                     continue;
-                visited[i] = true;
+                visited[pos] = true;
                 to_visit.push(pos);
-                region_value = grid.contents[i];
+                region_value = grid[pos];
             }
             size_t area = 0, sides = 0;
             while (!to_visit.empty()) {
                 auto pos = to_visit.front();
                 to_visit.pop();
-                auto i = grid.pos_to_i(pos);
                 area++;
                 for (size_t dir_i = 0; dir_i < grid_dirs.size(); dir_i++) {
                     auto other_pos = pos + grid_dirs[dir_i];
-                    auto other_i = grid.pos_to_i(other_pos);
                     if (other_pos.x >= grid.size.x ||
                         other_pos.y >= grid.size.y ||
-                        grid.contents[other_i] != region_value) {
+                        grid[other_pos] != region_value) {
                         auto side_mask = 1 << dir_i;
-                        side_masks[i] |= side_mask;
+                        side_masks[pos] |= side_mask;
                         for (const auto perp_dir : perp_grid_dirs[dir_i]) {
                             auto adj_pos = pos + perp_dir;
-                            auto adj_i = grid.pos_to_i(adj_pos);
                             if (adj_pos.x >= grid.size.x ||
                                 adj_pos.y >= grid.size.y ||
-                                grid.contents[adj_i] != region_value)
+                                grid[adj_pos] != region_value)
                                 continue;
-                            if (side_masks[adj_i] & side_mask)
+                            if (side_masks[adj_pos] & side_mask)
                                 goto found_adjacent;
                         }
                         sides++;
                     found_adjacent:
                         continue;
                     }
-                    if (visited[other_i])
+                    if (visited[other_pos])
                         continue;
-                    visited[other_i] = true;
+                    visited[other_pos] = true;
                     to_visit.push(other_pos);
                 }
             }

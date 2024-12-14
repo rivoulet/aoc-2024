@@ -105,12 +105,12 @@ bool simulate(Grid<Cell>& grid, Guard guard) {
         auto new_pos = guard.pos + offset_for_dir(guard.dir);
         if (new_pos.x >= grid.size.x || new_pos.y >= grid.size.y)
             return true;
-        if (grid.contents[new_pos.y * grid.size.x + new_pos.x].is_obstacle) {
+        if (grid[new_pos].is_obstacle) {
             guard.dir = rotate_clockwise(guard.dir);
         } else {
             guard.pos = new_pos;
         }
-        Cell& cell = grid.contents[guard.pos.y * grid.size.x + guard.pos.x];
+        Cell& cell = grid[guard.pos];
         uint8_t visit_dir_mask = 1 << (uint8_t)guard.dir;
         if ((cell.visit_dir_mask & visit_dir_mask) == 0) {
             cell.visit_dir_mask |= visit_dir_mask;
@@ -135,11 +135,10 @@ void part2(FILE* input) {
     size_t loops = 0;
     for (size_t y = 0; y < grid.size.y; y++) {
         for (size_t x = 0; x < grid.size.x; x++) {
-            auto i = y * grid.size.x + x;
-            if (grid.contents[i].is_obstacle)
+            if (grid[{x, y}].is_obstacle)
                 continue;
             auto grid_with_obstacle = grid;
-            grid_with_obstacle.contents[i].is_obstacle = true;
+            grid_with_obstacle[{x, y}].is_obstacle = true;
             loops += !simulate(grid_with_obstacle, guard);
         }
     }

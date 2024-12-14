@@ -241,6 +241,12 @@ template <typename T> struct Grid {
     Grid(std::vector<T> contents, Vec2<size_t> size) noexcept
         : contents(contents), size(size) {}
 
+    Grid(Vec2<size_t> size) noexcept : contents(size.x * size.y), size(size) {}
+
+    template <typename U>
+    Grid(Vec2<size_t> size, U fill_value) noexcept
+        : contents(size.x * size.y, fill_value), size(size) {}
+
     template <typename F> Grid(FILE* input, F parse) : size({0, 0}) {
         size_t cur_width = 0;
         for (int c; (c = read_char(input)) != EOF;) {
@@ -261,6 +267,14 @@ template <typename T> struct Grid {
 
     size_t pos_to_i(Vec2<size_t> pos) {
         return pos.y * size.x + pos.x;
+    }
+
+    template <typename U> void fill(U fill_value) {
+        std::fill(contents.begin(), contents.end(), fill_value);
+    }
+
+    typename std::vector<T>::reference operator[](Vec2<size_t> pos) {
+        return contents[pos_to_i(pos)];
     }
 };
 

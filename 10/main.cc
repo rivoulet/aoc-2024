@@ -1,5 +1,4 @@
 #include "../common.hh"
-#include <algorithm>
 #include <cstddef>
 #include <vector>
 
@@ -10,7 +9,7 @@ struct InputGrid : Grid<uint8_t> {
     InputGrid(FILE* input) : Grid(input, [](char c) { return c - '0'; }) {
         for (size_t y = 0; y < size.y; y++) {
             for (size_t x = 0; x < size.x; x++) {
-                switch (contents[pos_to_i({x, y})]) {
+                switch ((*this)[{x, y}]) {
                 case 0: {
                     zeros.push_back({x, y});
                     break;
@@ -31,29 +30,27 @@ void part1(FILE* input) {
     size_t sum = 0;
 
     std::vector<Vec2<size_t>> to_visit;
-    std::vector<bool> visited(grid.contents.size(), false);
+    Grid<bool> visited(grid.size);
     for (const auto zero : grid.zeros) {
-        std::fill(visited.begin(), visited.end(), false);
+        visited.fill(false);
         to_visit.push_back(zero);
-        visited[grid.pos_to_i(zero)] = true;
+        visited[zero] = true;
         while (!to_visit.empty()) {
             auto pos = to_visit.back();
             to_visit.pop_back();
-            auto i = grid.pos_to_i(pos);
             for (const auto dir : grid_dirs) {
                 auto new_pos = pos + dir;
                 if (new_pos.x >= grid.size.x || new_pos.y >= grid.size.y)
                     continue;
-                auto j = grid.pos_to_i(new_pos);
-                if (visited[j] || grid.contents[j] != grid.contents[i] + 1)
+                if (visited[new_pos] || grid[new_pos] != grid[pos] + 1)
                     continue;
-                visited[j] = true;
+                visited[new_pos] = true;
                 to_visit.push_back(new_pos);
             }
         }
 
         for (const auto nine : grid.nines) {
-            sum += visited[grid.pos_to_i(nine)];
+            sum += visited[nine];
         }
     }
 
@@ -71,14 +68,12 @@ void part2(FILE* input) {
         while (!to_visit.empty()) {
             auto pos = to_visit.back();
             to_visit.pop_back();
-            auto i = grid.pos_to_i(pos);
-            sum += grid.contents[i] == 0;
+            sum += grid[pos] == 0;
             for (const auto dir : grid_dirs) {
                 auto new_pos = pos + dir;
                 if (new_pos.x >= grid.size.x || new_pos.y >= grid.size.y)
                     continue;
-                auto j = grid.pos_to_i(new_pos);
-                if (grid.contents[j] + 1 != grid.contents[i])
+                if (grid[new_pos] + 1 != grid[pos])
                     continue;
                 to_visit.push_back(new_pos);
             }
