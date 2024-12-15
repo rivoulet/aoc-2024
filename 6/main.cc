@@ -6,15 +6,8 @@
 #include <utility>
 #include <vector>
 
-enum class Dir {
-    Up,
-    Right,
-    Down,
-    Left,
-};
-
 struct Guard {
-    Dir dir;
+    GridDir dir;
     Vec2<size_t> pos;
 };
 
@@ -22,32 +15,6 @@ struct Cell {
     bool is_obstacle;
     uint8_t visit_dir_mask;
 };
-
-Vec2<ptrdiff_t> offset_for_dir(Dir dir) {
-    switch (dir) {
-    case Dir::Up:
-        return {0, -1};
-    case Dir::Right:
-        return {1, 0};
-    case Dir::Down:
-        return {0, 1};
-    case Dir::Left:
-        return {-1, 0};
-    }
-}
-
-Dir rotate_clockwise(Dir dir) {
-    switch (dir) {
-    case Dir::Up:
-        return Dir::Right;
-    case Dir::Right:
-        return Dir::Down;
-    case Dir::Down:
-        return Dir::Left;
-    case Dir::Left:
-        return Dir::Up;
-    }
-}
 
 std::pair<Grid<Cell>, Guard> parse_map(FILE* input_) {
     std::string input = read_all(input_);
@@ -77,19 +44,19 @@ std::pair<Grid<Cell>, Guard> parse_map(FILE* input_) {
             continue;
         }
         case '^': {
-            guard.dir = Dir::Up;
+            guard.dir = GridDir::Up;
             break;
         }
         case '>': {
-            guard.dir = Dir::Right;
+            guard.dir = GridDir::Right;
             break;
         }
         case 'v': {
-            guard.dir = Dir::Down;
+            guard.dir = GridDir::Down;
             break;
         }
         case '<': {
-            guard.dir = Dir::Left;
+            guard.dir = GridDir::Left;
             break;
         }
         }
@@ -102,11 +69,11 @@ std::pair<Grid<Cell>, Guard> parse_map(FILE* input_) {
 
 bool simulate(Grid<Cell>& grid, Guard guard) {
     for (;;) {
-        auto new_pos = guard.pos + offset_for_dir(guard.dir);
+        auto new_pos = guard.pos + grid_dir_offset(guard.dir);
         if (new_pos.x >= grid.size.x || new_pos.y >= grid.size.y)
             return true;
         if (grid[new_pos].is_obstacle) {
-            guard.dir = rotate_clockwise(guard.dir);
+            guard.dir = rotate_grid_dir_clockwise(guard.dir);
         } else {
             guard.pos = new_pos;
         }

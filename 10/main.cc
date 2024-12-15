@@ -6,7 +6,8 @@ struct InputGrid : Grid<uint8_t> {
     std::vector<Vec2<size_t>> zeros;
     std::vector<Vec2<size_t>> nines;
 
-    InputGrid(FILE* input) : Grid(input, [](char c) { return c - '0'; }) {
+    InputGrid(FILE* input)
+        : Grid(input, [](char c, Vec2<size_t> pos) { return c - '0'; }) {
         for (size_t y = 0; y < size.y; y++) {
             for (size_t x = 0; x < size.x; x++) {
                 switch ((*this)[{x, y}]) {
@@ -38,8 +39,8 @@ void part1(FILE* input) {
         while (!to_visit.empty()) {
             auto pos = to_visit.back();
             to_visit.pop_back();
-            for (const auto dir : grid_dirs) {
-                auto new_pos = pos + dir;
+            for (const auto dir_offset : grid_dir_offsets) {
+                auto new_pos = pos + dir_offset;
                 if (new_pos.x >= grid.size.x || new_pos.y >= grid.size.y)
                     continue;
                 if (visited[new_pos] || grid[new_pos] != grid[pos] + 1)
@@ -69,8 +70,8 @@ void part2(FILE* input) {
             auto pos = to_visit.back();
             to_visit.pop_back();
             sum += grid[pos] == 0;
-            for (const auto dir : grid_dirs) {
-                auto new_pos = pos + dir;
+            for (const auto dir_offset : grid_dir_offsets) {
+                auto new_pos = pos + dir_offset;
                 if (new_pos.x >= grid.size.x || new_pos.y >= grid.size.y)
                     continue;
                 if (grid[new_pos] + 1 != grid[pos])

@@ -4,7 +4,7 @@
 #include <queue>
 #include <vector>
 
-constexpr std::array<std::array<Vec2<ptrdiff_t>, 2>, 4> perp_grid_dirs{
+constexpr std::array<std::array<Vec2<ptrdiff_t>, 2>, 4> perp_grid_dir_offsets{
     std::array<Vec2<ptrdiff_t>, 2>{
         Vec2<ptrdiff_t>{0, 1},
         {0, -1},
@@ -24,7 +24,7 @@ constexpr std::array<std::array<Vec2<ptrdiff_t>, 2>, 4> perp_grid_dirs{
 };
 
 void part1(FILE* input) {
-    Grid<char> grid(input, [](char c) { return c; });
+    Grid<char> grid(input);
     Grid<bool> visited(grid.size);
     std::vector<Vec2<size_t>> to_visit;
 
@@ -45,8 +45,8 @@ void part1(FILE* input) {
                 auto pos = to_visit.back();
                 to_visit.pop_back();
                 area++;
-                for (const auto dir : grid_dirs) {
-                    auto other_pos = pos + dir;
+                for (const auto dir_offset : grid_dir_offsets) {
+                    auto other_pos = pos + dir_offset;
                     if (other_pos.x >= grid.size.x ||
                         other_pos.y >= grid.size.y ||
                         grid[other_pos] != region_value) {
@@ -67,7 +67,7 @@ void part1(FILE* input) {
 }
 
 void part2(FILE* input) {
-    Grid<char> grid(input, [](char c) { return c; });
+    Grid<char> grid(input);
     Grid<bool> visited(grid.size, false);
     Grid<uint8_t> side_masks(grid.size, 0);
     std::queue<Vec2<size_t>> to_visit;
@@ -89,14 +89,14 @@ void part2(FILE* input) {
                 auto pos = to_visit.front();
                 to_visit.pop();
                 area++;
-                for (size_t dir_i = 0; dir_i < grid_dirs.size(); dir_i++) {
-                    auto other_pos = pos + grid_dirs[dir_i];
+                for (size_t dir_i = 0; dir_i < grid_dir_offsets.size(); dir_i++) {
+                    auto other_pos = pos + grid_dir_offsets[dir_i];
                     if (other_pos.x >= grid.size.x ||
                         other_pos.y >= grid.size.y ||
                         grid[other_pos] != region_value) {
                         auto side_mask = 1 << dir_i;
                         side_masks[pos] |= side_mask;
-                        for (const auto perp_dir : perp_grid_dirs[dir_i]) {
+                        for (const auto perp_dir : perp_grid_dir_offsets[dir_i]) {
                             auto adj_pos = pos + perp_dir;
                             if (adj_pos.x >= grid.size.x ||
                                 adj_pos.y >= grid.size.y ||

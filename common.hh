@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <cstdio>
 #include <limits>
 #include <string>
@@ -247,10 +248,15 @@ template <typename T> struct Grid {
     Grid(Vec2<size_t> size, U fill_value) noexcept
         : contents(size.x * size.y, fill_value), size(size) {}
 
+    Grid(FILE* input)
+        : Grid(input, [](char c, Vec2<size_t> pos) { return c; }) {}
+
     template <typename F> Grid(FILE* input, F parse) : size({0, 0}) {
         size_t cur_width = 0;
         for (int c; (c = read_char(input)) != EOF;) {
             if (c == '\n') {
+                if (cur_width == 0)
+                    break;
                 if (size.x) {
                     assert(cur_width == size.x);
                 } else {
@@ -259,7 +265,7 @@ template <typename T> struct Grid {
                 cur_width = 0;
                 size.y++;
             } else {
-                contents.push_back(parse(c));
+                contents.push_back(parse(c, Vec2<size_t>{cur_width, size.y}));
                 cur_width++;
             }
         }
@@ -267,6 +273,10 @@ template <typename T> struct Grid {
 
     size_t pos_to_i(Vec2<size_t> pos) {
         return pos.y * size.x + pos.x;
+    }
+
+    bool pos_is_inside(Vec2<size_t> pos) {
+        return pos.x < size.x && pos.y < size.y;
     }
 
     template <typename U> void fill(U fill_value) {
@@ -278,9 +288,44 @@ template <typename T> struct Grid {
     }
 };
 
-constexpr std::array<Vec2<ptrdiff_t>, 4> grid_dirs{
+enum class GridDir {
+    Right,
+    Left,
+    Down,
+    Up,
+};
+
+constexpr std::array<Vec2<ptrdiff_t>, 4> grid_dir_offsets{
     Vec2<ptrdiff_t>{1, 0},
     {-1, 0},
     {0, 1},
     {0, -1},
 };
+
+constexpr Vec2<ptrdiff_t> grid_dir_offset(GridDir dir) noexcept {
+    return grid_dir_offsets[(size_t)dir];
+}
+
+constexpr bool grid_dir_is_horizontal(GridDir dir) noexcept {
+    switch (dir) {
+    case GridDir::Right:
+    case GridDir::Left:
+        return true;
+    case GridDir::Down:
+    case GridDir::Up:
+        return false;
+    }
+}
+
+constexpr GridDir rotate_grid_dir_clockwise(GridDir dir) noexcept {
+    switch (dir) {
+    case GridDir::Up:
+        return GridDir::Right;
+    case GridDir::Right:
+        return GridDir::Down;
+    case GridDir::Down:
+        return GridDir::Left;
+    case GridDir::Left:
+        return GridDir::Up;
+    }
+}
