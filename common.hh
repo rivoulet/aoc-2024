@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <limits>
 #include <string>
@@ -295,6 +296,9 @@ enum class GridDir {
     Up,
 };
 
+constexpr std::array<GridDir, 4> grid_dirs{GridDir::Right, GridDir::Left,
+                                           GridDir::Down, GridDir::Up};
+
 constexpr std::array<Vec2<ptrdiff_t>, 4> grid_dir_offsets{
     Vec2<ptrdiff_t>{1, 0},
     {-1, 0},
@@ -304,6 +308,10 @@ constexpr std::array<Vec2<ptrdiff_t>, 4> grid_dir_offsets{
 
 constexpr Vec2<ptrdiff_t> grid_dir_offset(GridDir dir) noexcept {
     return grid_dir_offsets[(size_t)dir];
+}
+
+constexpr uint8_t grid_dir_mask(GridDir dir) noexcept {
+    return 1 << (size_t)dir;
 }
 
 constexpr bool grid_dir_is_horizontal(GridDir dir) noexcept {
@@ -326,6 +334,19 @@ constexpr GridDir rotate_grid_dir_clockwise(GridDir dir) noexcept {
     case GridDir::Down:
         return GridDir::Left;
     case GridDir::Left:
+        return GridDir::Up;
+    }
+}
+
+constexpr GridDir rotate_grid_dir_counterclockwise(GridDir dir) noexcept {
+    switch (dir) {
+    case GridDir::Up:
+        return GridDir::Left;
+    case GridDir::Left:
+        return GridDir::Down;
+    case GridDir::Down:
+        return GridDir::Right;
+    case GridDir::Right:
         return GridDir::Up;
     }
 }
