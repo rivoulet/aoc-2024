@@ -207,6 +207,33 @@ inline std::string read_all(FILE* f) {
     return result;
 }
 
+inline std::string read_line(FILE* f) {
+    size_t buf_size = BUF_START_SIZE;
+    char* buf = (char*)malloc(buf_size);
+    size_t i = 0;
+    do {
+        if (i == buf_size) {
+            buf_size <<= 1;
+            buf = (char*)realloc(buf, buf_size);
+        }
+        if (fgets(buf + i, buf_size - i, f)) {
+            i += strlen(buf + i);
+            if (buf[i - 1] == '\n')
+                break;
+        } else {
+            int err = ferror(f);
+            if (err) {
+                throw std::system_error(err, std::system_category());
+            }
+            // EOF
+            buf[i] = 0;
+        }
+    } while (!feof(f));
+    std::string result = buf;
+    free(buf);
+    return result;
+}
+
 inline std::vector<std::string> read_all_lines(FILE* f) {
     std::vector<std::string> result;
     size_t buf_size = BUF_START_SIZE;
