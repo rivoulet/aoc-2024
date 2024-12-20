@@ -189,7 +189,7 @@ inline std::string read_all(FILE* f) {
     size_t buf_size = BUF_START_SIZE;
     char* buf = (char*)malloc(buf_size);
     for (size_t i = 0;;) {
-        if (i == buf_size) {
+        if (i + 1 >= buf_size) {
             buf_size <<= 1;
             buf = (char*)realloc(buf, buf_size);
         }
@@ -212,7 +212,7 @@ inline std::string read_line(FILE* f) {
     char* buf = (char*)malloc(buf_size);
     size_t i = 0;
     do {
-        if (i == buf_size) {
+        if (i + 1 >= buf_size) {
             buf_size <<= 1;
             buf = (char*)realloc(buf, buf_size);
         }
@@ -240,7 +240,7 @@ inline std::vector<std::string> read_all_lines(FILE* f) {
     char* buf = (char*)malloc(buf_size);
     size_t i = 0;
     do {
-        if (i == buf_size) {
+        if (i + 1 >= buf_size) {
             buf_size <<= 1;
             buf = (char*)realloc(buf, buf_size);
         }
@@ -299,19 +299,24 @@ template <typename T> struct Grid {
         }
     }
 
-    size_t pos_to_i(Vec2<size_t> pos) {
+    size_t pos_to_i(Vec2<size_t> pos) const noexcept {
         return pos.y * size.x + pos.x;
     }
 
-    bool pos_is_inside(Vec2<size_t> pos) {
+    bool pos_is_inside(Vec2<size_t> pos) const noexcept {
         return pos.x < size.x && pos.y < size.y;
     }
 
-    template <typename U> void fill(U fill_value) {
+    template <typename U> void fill(U fill_value) noexcept {
         std::fill(contents.begin(), contents.end(), fill_value);
     }
 
-    typename std::vector<T>::reference operator[](Vec2<size_t> pos) {
+    typename std::vector<T>::const_reference
+    operator[](Vec2<size_t> pos) const noexcept {
+        return contents[pos_to_i(pos)];
+    }
+
+    typename std::vector<T>::reference operator[](Vec2<size_t> pos) noexcept {
         return contents[pos_to_i(pos)];
     }
 };

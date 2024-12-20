@@ -32,18 +32,16 @@ struct Input {
     }
 
     size_t count_possible(const std::string_view& design) {
-        if (design.size() == 0)
+        if (design.empty())
             return 1;
         if (cache.count(design))
             return cache[design];
         size_t count = 0;
         for (const auto& pattern : patterns) {
-            if (design.compare(0, pattern.size(), pattern))
-                continue;
-            count += count_possible(design.substr(pattern.size()));
+            if (!design.compare(0, pattern.size(), pattern))
+                count += count_possible(design.substr(pattern.size()));
         }
-        cache[design] = count;
-        return count;
+        return cache[design] = count;
     }
 };
 
