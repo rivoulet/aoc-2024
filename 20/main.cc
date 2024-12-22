@@ -34,37 +34,23 @@ struct Input {
 
     Grid<size_t> get_distances() {
         Grid<size_t> distances(grid.size, SIZE_MAX);
-
-        using VisitNode = std::pair<Vec2<size_t>, size_t>;
-        auto compare = [&](const VisitNode& a, const VisitNode& b) {
-            return a.second > b.second;
-        };
-        std::priority_queue<VisitNode, std::vector<VisitNode>,
-                            decltype(compare)>
-            to_visit(compare);
-
+        std::queue<Vec2<size_t>> to_visit;
         auto try_visit = [&](auto pos, auto distance) {
-            if (distance >= distances[pos])
+            if (distances[pos] != SIZE_MAX)
                 return;
             distances[pos] = distance;
-            to_visit.push({pos, distance});
+            to_visit.push(pos);
         };
-
         try_visit(start_pos, 0);
         while (!to_visit.empty()) {
-            auto [pos, distance] = to_visit.top();
+            auto pos = to_visit.front();
             to_visit.pop();
-
-            if (distance != distances[pos])
-                continue;
-
             for (const auto dir : grid_dirs) {
                 auto new_pos = pos + grid_dir_offset(dir);
                 if (grid.pos_is_inside(new_pos) && grid[new_pos] == Cell::Empty)
-                    try_visit(new_pos, distance + 1);
+                    try_visit(new_pos, distances[pos] + 1);
             }
         }
-
         return distances;
     }
 

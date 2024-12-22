@@ -311,6 +311,17 @@ template <typename T> struct Grid {
         std::fill(contents.begin(), contents.end(), fill_value);
     }
 
+    Vec2<size_t> find(const T& value) const noexcept {
+        for (size_t y = 0; y < size.y; y++) {
+            for (size_t x = 0; x < size.x; x++) {
+                Vec2<size_t> pos{x, y};
+                if ((*this)[pos] == value)
+                    return pos;
+            }
+        }
+        return size;
+    }
+
     typename std::vector<T>::const_reference
     operator[](Vec2<size_t> pos) const noexcept {
         return contents[pos_to_i(pos)];
