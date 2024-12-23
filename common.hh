@@ -5,9 +5,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <functional>
 #include <limits>
 #include <string>
 #include <system_error>
+#include <unordered_set>
 #include <vector>
 
 template <typename T> struct Vec2 {
@@ -159,16 +161,26 @@ template <typename T> T rotl(T x, unsigned s) noexcept {
 }
 
 template <typename T> struct std::hash<Vec2<T>> {
-    std::size_t operator()(const Vec2<T>& v) const noexcept {
-        return rotl(std::hash<T>{}(v.x), SIZE_T_BITS >> 1) |
+    size_t operator()(const Vec2<T>& v) const noexcept {
+        return rotl(std::hash<T>{}(v.x), SIZE_T_BITS >> 1) ^
                std::hash<T>{}(v.y);
     }
 };
 
 template <typename T, typename U> struct std::hash<std::pair<T, U>> {
-    std::size_t operator()(const std::pair<T, U>& p) const noexcept {
-        return rotl(std::hash<T>{}(p.first), SIZE_T_BITS >> 1) |
+    size_t operator()(const std::pair<T, U>& p) const noexcept {
+        return rotl(std::hash<T>{}(p.first), SIZE_T_BITS >> 1) ^
                std::hash<U>{}(p.second);
+    }
+};
+
+template <typename T, size_t _size> struct std::hash<std::array<T, _size>> {
+    size_t operator()(const std::array<T, _size>& a) const noexcept {
+        size_t hash = 0;
+        for (const auto& e : a) {
+            hash = rotl(hash, 1) ^ std::hash<T>{}(e);
+        }
+        return hash;
     }
 };
 
@@ -393,3 +405,168 @@ constexpr GridDir rotate_grid_dir_counterclockwise(GridDir dir) noexcept {
         return GridDir::Up;
     }
 }
+
+template <typename T> struct Node {
+    T value;
+    size_t next_from, next_to;
+    bool visited;
+};
+
+struct Edge {
+    size_t from, to, prev_from, prev_to, next_from, next_to;
+};
+
+template <typename T> class Graph {
+  private:
+    std::vector<Node<T>> nodes;
+    std::vector<Edge> edges;
+
+  public:
+    Node<T>& node(size_t node_i) {
+        return nodes[node_i];
+    }
+
+    size_t add_node(T value) {
+        size_t node_i = nodes.size();
+        nodes.push_back({value, SIZE_MAX, SIZE_MAX, false});
+        return node_i;
+    }
+
+    Edge& edge(size_t edge_i) {
+        return edges[edge_i];
+    }
+
+    void add_edge(size_t from, size_t to) {
+        auto& n_from = nodes[from];
+        auto& n_to = nodes[to];
+        size_t edge_i = edges.size();
+        edges.push_back(
+            {from, to, SIZE_MAX, SIZE_MAX, n_from.next_from, n_to.next_to});
+        if (n_from.next_from < SIZE_MAX) {
+            edges[n_from.next_from].prev_from = edge_i;
+        }
+        n_from.next_from = edge_i;
+        if (n_to.next_to < SIZE_MAX) {
+            edges[n_to.next_to].prev_to = edge_i;
+        }
+        n_to.next_to = edge_i;
+    }
+
+    bool nodes_are_connected(size_t from, size_t to) {
+        for (size_t edge_i = nodes[from].next_from; edge_i != SIZE_MAX;) {
+            const auto& edge = edges[edge_i];
+            if (edges[edge_i].to == to)
+                return true;
+            edge_i = edge.next_from;
+        }
+        return false;
+    }
+
+  private:
+    template <typename F>
+    void dfs_inner(size_t from, F f, std::vector<bool>& visited) {
+        if (visited[from])
+            return;
+        visited[from] = true;
+        for (size_t edge_i = nodes[from].next_from; edge_i != SIZE_MAX;) {
+            const auto& edge = edges[edge_i];
+            dfs_inner(edge.to, f, visited);
+            edge_i = edge.next_from;
+        }
+        f(from);
+    }
+
+  public:
+    template <typename F> void dfs(F f) {
+        std::vector<bool> visited(nodes.size());
+        for (auto& node : nodes) {
+            node.visited = false;
+        }
+        for (size_t from = 0; from < nodes.size(); from++) {
+            dfs_inner(from, f, visited);
+        }
+    }
+
+  private:
+    void maximal_cliques_inner(std::vector<std::vector<size_t>>& result,
+                               std::vector<size_t>& yes,
+                               std::unordered_set<size_t> maybe,
+                               std::unordered_set<size_t> no) {
+        if (maybe.empty() && no.empty()) {
+            result.push_back(yes);
+            return;
+        }
+        while (!maybe.empty()) {
+            auto n = *maybe.begin();
+            maybe.erase(n);
+
+            std::unordered_set<size_t> neighbors;
+            for (size_t edge_i = nodes[n].next_from; edge_i != SIZE_MAX;) {
+                const auto& edge = edges[edge_i];
+                neighbors.emplace(edge.to);
+                edge_i = edge.next_from;
+            }
+
+            std::unordered_set<size_t> n_maybe, n_no;
+            for (const auto m : maybe) {
+                if (neighbors.count(m))
+                    n_maybe.emplace(m);
+            }
+            for (const auto m : no) {
+                if (neighbors.count(m))
+                    n_no.emplace(m);
+            }
+
+            yes.push_back(n);
+            maximal_cliques_inner(result, yes, n_maybe, n_no);
+            yes.pop_back();
+
+            maybe.erase(n);
+            no.emplace(n);
+        }
+    }
+
+  public:
+    std::vector<std::vector<size_t>> maximal_cliques() {
+        std::vector<std::vector<size_t>> result;
+        std::vector<size_t> yes;
+        std::unordered_set<size_t> maybe;
+        for (size_t i = 0; i < nodes.size(); i++) {
+            maybe.emplace(i);
+        }
+        maximal_cliques_inner(result, yes, maybe, {});
+        return result;
+    }
+
+    void unlink_node(size_t node_i) {
+        auto& node = nodes[node_i];
+        for (size_t edge_i = node.next_to; edge_i < SIZE_MAX;) {
+            auto& edge = edges[edge_i];
+            auto& n_from = nodes[edge.from];
+            if (edge.next_from < SIZE_MAX) {
+                edges[edge.next_from].prev_from = edge.prev_from;
+            }
+            if (edge.prev_from < SIZE_MAX) {
+                edges[edge.prev_from].next_from = edge.next_from;
+            } else {
+                n_from.next_from = edge.next_from;
+            }
+            edge_i = edge.next_to;
+        }
+        for (size_t edge_i = node.next_from; edge_i < SIZE_MAX;) {
+            auto& edge = edges[edge_i];
+            auto& n_to = nodes[edge.to];
+            if (edge.next_to < SIZE_MAX) {
+                edges[edge.next_to].prev_to = edge.prev_to;
+            }
+            if (edge.prev_to < SIZE_MAX) {
+                edges[edge.prev_to].next_to = edge.next_to;
+            } else {
+                n_to.next_to = edge.next_to;
+            }
+            edge_i = edge.next_from;
+        }
+        node.next_to = SIZE_MAX;
+        node.next_from = SIZE_MAX;
+    }
+};
