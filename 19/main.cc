@@ -24,9 +24,7 @@ struct Input {
         if (!pattern.empty())
             patterns.push_back(pattern);
         read_line(input);
-        for (std::string design; !(design = read_line(input)).empty();) {
-            if (design.back() == '\n')
-                design.pop_back();
+        for (std::string design; !(design = read_line(input, true)).empty();) {
             designs.push_back(design);
         }
     }

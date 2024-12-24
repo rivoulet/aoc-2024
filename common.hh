@@ -219,7 +219,7 @@ inline std::string read_all(FILE* f) {
     return result;
 }
 
-inline std::string read_line(FILE* f) {
+inline std::string read_line(FILE* f, bool remove_newline = false) {
     size_t buf_size = BUF_START_SIZE;
     char* buf = (char*)malloc(buf_size);
     size_t i = 0;
@@ -243,6 +243,8 @@ inline std::string read_line(FILE* f) {
     } while (!feof(f));
     std::string result = buf;
     free(buf);
+    if (remove_newline && !result.empty() && result.back() == '\n')
+        result.pop_back();
     return result;
 }
 
